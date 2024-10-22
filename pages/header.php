@@ -4,6 +4,6 @@
   </ul>
   <ul>
     <li><a href="#" class="contrast">About</a></li>
-    <li><button class="secondary">Log In</button></li>
+    <li><a href="login.php" class="secondary button">Log In</a></li>
   </ul>
 </nav>
