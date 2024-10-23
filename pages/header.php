@@ -14,7 +14,6 @@ session_start(); // Ensure session is started
   </ul>
   <ul>
     <li><a href="#" class="contrast">About</a></li>
-
     <?php if ($auth->isLoggedIn()): ?>
       <!-- If the user is logged in, show their email and a logout button -->
       <li><a href="logout.php" class="secondary button">Log Out</a></li>
