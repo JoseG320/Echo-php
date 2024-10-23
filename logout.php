@@ -5,3 +5,4 @@ $auth = new \Delight\Auth\Auth($db);
 
 $auth->logout();
 header('Location: login.php');
+?>
