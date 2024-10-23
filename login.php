@@ -1,30 +1,31 @@
 <?php
+require __DIR__ . '/vendor/autoload.php';
+$db = new PDO('mysql:host=localhost;dbname=echo-db;charset=utf8', 'root', '');
+$auth = new \Delight\Auth\Auth($db);
+
 session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Connect to database
-    $conn = new mysqli('localhost', 'root', '', 'echo-db');
-
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-
-    $username = $_POST['username'];
+    $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Check if user exists and password matches
-    $sql = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        // Set session variables and redirect to a secure page
-        $_SESSION['username'] = $username;
+    try {
+        $auth->login($email, $password);
+        // Redirect to dashboard after login
         header("Location: home.php");
-    } else {
-        echo "Invalid username or password.";
     }
-
-    $conn->close();
+    catch (\Delight\Auth\InvalidEmailException $e) {
+        echo 'Wrong email address';
+    }
+    catch (\Delight\Auth\InvalidPasswordException $e) {
+        echo 'Wrong password';
+    }
+    catch (\Delight\Auth\EmailNotVerifiedException $e) {
+        echo 'Email not verified';
+    }
+    catch (\Delight\Auth\TooManyRequestsException $e) {
+        echo 'Too many login attempts. Try again later.';
+    }
 }
 ?>
 
@@ -41,11 +42,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Login</title>
 </head>
 <body class="container">
+    <header>
+        <?php include "./pages/header.php"?>
+    </header>
     <h2>Login</h2>
     <form method="POST" action="">
-        Username: <input type="text" name="username" required><br>
+        Email: <input type="email" name="email" required><br>
         Password: <input type="password" name="password" required><br>
         <button type="submit">Login</button>
+        <a href="register.php" class="secondary">Not a member? Register an account!</a>
     </form>
 </body>
 </html>

@@ -1,9 +1,16 @@
 <?php
+require __DIR__ . '/vendor/autoload.php';
+$db = new PDO('mysql:host=localhost;dbname=echo-db;charset=utf8', 'root', '');
+$auth = new \Delight\Auth\Auth($db);
+
 session_start();
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit();
+
+if (!$auth->isLoggedIn()) {
+    header('Location: login.php');
+    exit;
 }
+
+echo 'Welcome, ' . $auth->getEmail();
 ?>
 
 <!DOCTYPE html>
@@ -18,9 +25,12 @@ if (!isset($_SESSION['username'])) {
     >
     <title>Dashboard</title>
 </head>
-<body>
+<body class="container">
+    <header>
+        <?php include "./pages/header.php"?>
+    </header>
     <!-- Test Page to show who is logged in. To be changed. -->
-    <h2>Welcome,  <?php echo $_SESSION['username']; ?>!</h2>
+    <h2>Welcome, <?php echo $auth->getUsername(); ?>!</h2>
     <a href="logout.php">Logout</a>
 </body>
 </html>

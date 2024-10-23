@@ -1,38 +1,34 @@
 <?php
-session_start();
+require __DIR__ . '/vendor/autoload.php';
+$db = new PDO('mysql:host=localhost;dbname=echo-db;charset=utf8', 'root', '');
+$auth = new \Delight\Auth\Auth($db);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Connect to database
-    $conn = new mysqli('localhost', 'root', '', 'echo-db');
-
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-
-    $username = $_POST['username'];
+    $email = $_POST['email'];
     $password = $_POST['password'];
+    $username = $_POST['username'];
 
-    // Fetch the user data from the database
-    $sql = "SELECT * FROM users WHERE username = '$username'";
-    $result = $conn->query($sql);
+    try {
+        $userId = $auth->register($email, $password, $username, function ($selector, $token) {
+            // Send the verification email
+            // For example, using PHP's mail() function or an external service
+            echo 'Please confirm your email by visiting the following URL: ';
+            echo '<a href="verify.php?selector=' . $selector . '&token=' . $token . '">Verify your email</a>';
+        });
 
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-
-        // Verify the entered password with the hashed password
-        if (password_verify($password, $user['password'])) {
-            // Password matches, set session variables and redirect
-            $_SESSION['username'] = $username;
-            header("Location: dashboard.php");
-        } else {
-            echo "Invalid username or password.";
-        }
-    } else {
-        echo "Invalid username or password.";
+        echo 'We have signed up a new user with the ID ' . $userId;
     }
-
-    $conn->close();
+    catch (\Delight\Auth\InvalidEmailException $e) {
+        echo 'Invalid email address';
+    }
+    catch (\Delight\Auth\InvalidPasswordException $e) {
+        echo 'Invalid password';
+    }
+    catch (\Delight\Auth\UserAlreadyExistsException $e) {
+        echo 'User or email already exists';
+    }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -47,9 +43,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css"
     >
 </head>
-<body>
+<body class="container">
+    <header>
+        <?php include "./pages/header.php"?>
+    </header>
     <h2>Register</h2>
     <form method="POST" action="">
+        Email: <input type="email" name="email" required><br>
         Username: <input type="text" name="username" required><br>
         Password: <input type="password" name="password" required><br>
         <button type="submit">Register</button>
