@@ -10,7 +10,6 @@ if (!$auth->isLoggedIn()) {
     exit;
 }
 
-echo 'Welcome, ' . $auth->getEmail();
 ?>
 
 <!DOCTYPE html>
@@ -29,8 +28,7 @@ echo 'Welcome, ' . $auth->getEmail();
     <header>
         <?php include "./pages/header.php"?>
     </header>
-    <!-- Test Page to show who is logged in. To be changed. -->
+    <!-- Test Page to show who is logged in. To be changed into a new page. -->
     <h2>Welcome, <?php echo $auth->getUsername(); ?>!</h2>
-    <a href="logout.php">Logout</a>
 </body>
 </html>

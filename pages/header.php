@@ -10,10 +10,11 @@ session_start(); // Ensure session is started
 
 <nav>
   <ul>
-    <li><strong>Echo - Share Music!</strong></li>
+  <li><a href="index.php"><strong>Echo - Share Music!</strong></a></li>
   </ul>
   <ul>
     <li><a href="#" class="contrast">About</a></li>
+    <li><a href="home.php" class="contrast">Home</a></li>
     <?php if ($auth->isLoggedIn()): ?>
       <!-- If the user is logged in, show their email and a logout button -->
       <li><a href="logout.php" class="secondary button">Log Out</a></li>

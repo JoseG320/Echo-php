@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $userId = $auth->register($email, $password, $username, function ($selector, $token) {
             // Send the verification email
-            // For example, using PHP's mail() function or an external service
+            // To be changed, may not even need to use emails.
             echo 'Please confirm your email by visiting the following URL: ';
             echo '<a href="verify.php?selector=' . $selector . '&token=' . $token . '">Verify your email</a>';
         });

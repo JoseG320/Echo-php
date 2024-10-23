@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         $auth->login($email, $password);
-        // Redirect to dashboard after login
+        // Redirect to dashboard after successful login
         header("Location: home.php");
     }
     catch (\Delight\Auth\InvalidEmailException $e) {
