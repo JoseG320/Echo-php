@@ -1,22 +1,16 @@
 <?php
-// Include Composer autoloader and set up authentication
-require __DIR__ . '/../vendor/autoload.php';
-$db = new PDO('mysql:host=localhost;dbname=echo-db;charset=utf8', 'root', '');
-$auth = new \Delight\Auth\Auth($db);
-
-session_start(); // Ensure session is started
-
+session_start(); // Ensure the session is started
 ?>
 
 <nav>
   <ul>
-  <li><a href="index.php"><strong>Echo - Share Music!</strong></a></li>
+    <li><a href="index.php"><strong>Echo - Share Music!</strong></a></li>
   </ul>
   <ul>
     <li><a href="#" class="contrast">About</a></li>
     <li><a href="home.php" class="contrast">Home</a></li>
-    <?php if ($auth->isLoggedIn()): ?>
-      <!-- If the user is logged in, show their email and a logout button -->
+    <?php if (isset($_SESSION['user_id'])): ?>
+      <!-- If the user is logged in, show their username and a logout button -->
       <li><a href="logout.php" class="secondary button">Log Out</a></li>
     <?php else: ?>
       <!-- If the user is not logged in, show the login button -->

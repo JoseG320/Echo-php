@@ -1,33 +1,37 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-$db = new PDO('mysql:host=localhost;dbname=echo-db;charset=utf8', 'root', '');
-$auth = new \Delight\Auth\Auth($db);
+// Database connection
+$conn = new mysqli('localhost', 'root', '', 'echo-db');
+if ($conn->connect_error) {
+    die('Connection failed: ' . $conn->connect_error);
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
-    $password = $_POST['password'];
     $username = $_POST['username'];
+    $password = $_POST['password'];
 
-    try {
-        $userId = $auth->register($email, $password, $username, function ($selector, $token) {
-            // Send the verification email
-            // To be changed, may not even need to use emails.
-            echo 'Please confirm your email by visiting the following URL: ';
-            echo '<a href="verify.php?selector=' . $selector . '&token=' . $token . '">Verify your email</a>';
-        });
+    // Validate input
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        die('Invalid email address.');
+    }
 
-        echo 'We have signed up a new user with the ID ' . $userId;
+    // Hash the password
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+    // Insert user into the database
+    $stmt = $conn->prepare("INSERT INTO users (email, password, username, display_name) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssss", $email, $hashedPassword, $username, $displayName);
+
+    if ($stmt->execute()) {
+        echo 'Registration successful! You can now <a href="login.php">login</a>.';
+    } else {
+        echo 'Error: ' . $stmt->error;
     }
-    catch (\Delight\Auth\InvalidEmailException $e) {
-        echo 'Invalid email address';
-    }
-    catch (\Delight\Auth\InvalidPasswordException $e) {
-        echo 'Invalid password';
-    }
-    catch (\Delight\Auth\UserAlreadyExistsException $e) {
-        echo 'User or email already exists';
-    }
+
+    $stmt->close();
 }
+
+$conn->close();
 
 ?>
 

@@ -1,15 +1,11 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-$db = new PDO('mysql:host=localhost;dbname=echo-db;charset=utf8', 'root', '');
-$auth = new \Delight\Auth\Auth($db);
-
 session_start();
 
-if (!$auth->isLoggedIn()) {
+// Check if the user is logged in
+if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -29,6 +25,6 @@ if (!$auth->isLoggedIn()) {
         <?php include "./pages/header.php"?>
     </header>
     <!-- Test Page to show who is logged in. To be changed into a new page. -->
-    <h2>Welcome, <?php echo $auth->getUsername(); ?>!</h2>
+    <h2>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
 </body>
 </html>

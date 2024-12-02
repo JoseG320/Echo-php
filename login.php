@@ -1,32 +1,45 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-$db = new PDO('mysql:host=localhost;dbname=echo-db;charset=utf8', 'root', '');
-$auth = new \Delight\Auth\Auth($db);
-
 session_start();
 
+// Database connection
+$conn = new mysqli('localhost', 'root', '', 'echo-db');
+if ($conn->connect_error) {
+    die('Connection failed: ' . $conn->connect_error);
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST['email'];
+    $username = $_POST['username'];
     $password = $_POST['password'];
 
-    try {
-        $auth->login($email, $password);
-        // Redirect to dashboard after successful login
-        header("Location: home.php");
+    // Fetch user by username
+    $stmt = $conn->prepare("SELECT id, password, username FROM users WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+
+        // Verify the password
+        if (password_verify($password, $user['password'])) {
+            // Store user info in session
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+
+            // Redirect to the dashboard
+            header('Location: home.php');
+            exit; // Ensure no further code executes after the redirect
+        } else {
+            echo 'Invalid credentials.';
+        }
+    } else {
+        echo 'No user found with this username.';
     }
-    catch (\Delight\Auth\InvalidEmailException $e) {
-        echo 'Wrong email address';
-    }
-    catch (\Delight\Auth\InvalidPasswordException $e) {
-        echo 'Wrong password';
-    }
-    catch (\Delight\Auth\EmailNotVerifiedException $e) {
-        echo 'Email not verified';
-    }
-    catch (\Delight\Auth\TooManyRequestsException $e) {
-        echo 'Too many login attempts. Try again later.';
-    }
+
+    $stmt->close();
 }
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -47,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </header>
     <h2>Login</h2>
     <form method="POST" action="">
-        Email: <input type="email" name="email" required><br>
+        Username: <input type="username" name="username" required><br>
         Password: <input type="password" name="password" required><br>
         <button type="submit">Login</button>
         <a href="register.php" class="secondary">Not a member? Register an account!</a>
