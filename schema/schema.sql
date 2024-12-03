@@ -39,10 +39,8 @@ CREATE TABLE playlist_songs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     playlist_id BIGINT NOT NULL,
     song_id BIGINT NOT NULL,
-    position INT NOT NULL,
     FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
-    FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_song_position (playlist_id, position)
+    FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_library (

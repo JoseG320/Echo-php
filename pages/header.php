@@ -1,7 +1,3 @@
-<?php
-session_start(); // Ensure the session is started
-?>
-
 <nav>
   <ul>
     <li><a href="index.php"><strong>🎸  Echo - Share Music!</strong></a></li>

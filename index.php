@@ -5,37 +5,56 @@ $username = 'root';
 $password = '';
 $dbname = 'echo-db';
 
-//connect to database
+// Connect to database
 $conn = new mysqli($servername, $username, $password, $dbname);
-
 
 ?>
 
 <!doctype html>
-<html lang="en" data-theme="dark" >
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark" />
-    <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css"
-    >
-    <title>Hello world!</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css">
+    <title>Your Personal Music Dashboard 🎶</title>
   </head>
   <body class="container">
 
     <header>
-        <?php include "./pages/header.php"?>
+        <?php include "./pages/header.php" ?>
     </header>
 
-
     <main>
-        <h1>hello world</h1>
+        <h1>Welcome to Your Music Dashboard 🎵🎧</h1>
+
+        <p>
+            Welcome to your personal music library! 🚀 Here, you can manage your songs 🎶, 
+            create custom playlists 🎼, and enjoy your favorite tracks all in one place. 🌟
+        </p>
+
+        <p>
+            Here's what you can do:
+        </p>
+        
+        <ul>
+            <li>🎤 Add your favorite songs to your library</li>
+            <li>📑 Create and organize your playlists</li>
+            <li>❌ Delete any songs or playlists you no longer need</li>
+            <li>🎶 Explore your personal collection anytime, anywhere!</li>
+        </ul>
+
+        <p>
+            Ready to get started? Click below and let's get the playlist rolling! 🎉
+        </p>
+        
+        <a href="register.php" class="button">Register Now!</a>
 
     </main>
 
-    <footer>...</footer>
+    <footer>
+        <p>Made by Jose and Mustafa
+    </footer>
 
   </body>
 </html>

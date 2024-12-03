@@ -36,7 +36,7 @@ $conn->close();
 ?>
 
 <!DOCTYPE html>
-<html>
+<html data-theme="dark">
 <head>
     <title>Register</title>
     <meta charset="utf-8">

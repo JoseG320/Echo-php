@@ -91,7 +91,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'newPlaylist')
 
 // fetch the the users song library
 try {
-    $fetchSongs = $conn->prepare("select * from songs where owner_id = ? order by id desc");
+    $fetchSongs = $conn->prepare("
+        select * 
+        from songs where owner_id = ? 
+        order by id desc"
+    );
     $fetchSongs->bind_param("i", $current_user_id);
     $fetchSongs->execute();
 
@@ -116,7 +120,7 @@ try {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
