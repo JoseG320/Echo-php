@@ -24,7 +24,7 @@ $fetchPlaylist->close();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editPlaylist') {
     $name = $_POST['name'];
     $description = $_POST['description'];
-    $playlist_id = $playlist['id'];
+    $playlist_id = $_GET['playlist_id'];
     
     if ($playlist['id'] && $name && $description) {
         $addPlaylist = $conn->prepare("UPDATE playlists SET name = ?, description = ? WHERE id = ?");
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'addSongToPlay
 // Endpoint for deleting a song from a playlist
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'deletePlaylistSong') {
     $pl_id = $_POST['pl_id'];
-    $playlist_id = $playlist['id'];
+    $playlist_id = $_GET['playlist_id'];
     
     if ($pl_id) {
         $deletePlaylistSong = $conn->prepare("DELETE FROM playlist_songs WHERE id = ? AND playlist_id = ?");
@@ -91,6 +91,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'deletePlaylis
         $deletePlaylistSong->close();
     } else {
         $song_error_message = "There was an error deleting the song from the playlist";
+    }
+}
+
+// Handle deleting the playlist
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'deletePlaylist') {
+    $playlist_id = $playlist['id'];
+
+    if ($playlist_id) {
+        // Delete all songs in the playlist first
+        $deletePlaylistSongs = $conn->prepare("DELETE FROM playlist_songs WHERE playlist_id = ?");
+        $deletePlaylistSongs->bind_param("i", $playlist_id);
+        $deletePlaylistSongs->execute();
+        $deletePlaylistSongs->close();
+
+        // then delete playlist 
+        $deletePlaylist = $conn->prepare("DELETE FROM playlists WHERE id =  ?");
+        $deletePlaylist->bind_param("i", $playlist_id);
+        
+        if ($deletePlaylist->execute()) {
+            // Redirect to the same page to refresh the playlist songs
+            header("Location: home.php");
+            exit;
+        } else {
+            $playlistDelete_error_message = "Error deleting the playlist: " . $deletePlaylist->error;
+        }
+        $deletePlaylist->close();
+    } else {
+        $playlistDelete_error_message = "There was an error deleting the playlist.";
     }
 }
 
@@ -214,6 +242,14 @@ $fetchPlaylistSongs->close();
                 </form>
             </section>
         </article>
+        <form action="" method="POST" style="width: 200px;">
+            <input type="hidden" name="action" value="deletePlaylist"/>
+            <input type="submit" value="Delete Playlist" style="background-color: red; color: white;"/>
+        </form>
+
+        <?php if (isset($playlist_error_message)): ?>
+            <p style="color: red;"><?= htmlspecialchars($playlist_error_message) ?></p>
+        <?php endif; ?>
     </main>
 </body>
 </html>
