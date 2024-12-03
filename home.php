@@ -135,9 +135,18 @@ try {
     <header>
         <?php include "./pages/header.php"?>
     </header>
-    <!-- Test Page to show who is logged in. To be changed into a new page. -->
-    <h2>Welcome, <?php echo htmlspecialchars($current_username); ?>  🌊</h2>
 
+    <nav>
+    <ul>
+        <li><h2>Welcome, <?php echo htmlspecialchars($current_username); ?>  🌊</h2></li>
+    </ul>
+    <ul>
+        <li><a href="friends.php" class="contrast">📡 Add Friends</a></li>
+        <li><a href="new-songs.php" class="contrast">🏍️ Newly Added Songs</a></li>
+        <li><a href="comparisons.php" class="contrast">🌈 Find New Music!</a></li>
+
+    </ul>
+    </nav>
     <article>
         <header>Your Song Library</header>
 
