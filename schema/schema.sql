@@ -31,7 +31,7 @@ CREATE TABLE playlists (
     owner_id BIGINT NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    is_public BOOLEAN DEFAULT false,
+    is_public BOOLEAN DEFAULT true,
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

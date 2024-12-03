@@ -18,7 +18,6 @@ if ($conn->connect_error) {
 }
 
 // Endpoint for adding new song
-// Handle song creation (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'add') {
     $title = $_POST['title'];
     $artist = $_POST['artist'];
@@ -43,6 +42,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'add') {
     }
 }
 
+// Endpoint for deleting a song
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'delete') {
+    $song_id = $_POST['song_id'];
+
+    if ($song_id) {
+        $deleteSong = $conn->prepare("DELETE FROM songs WHERE id = ?");
+        $deleteSong->bind_param("i", $song_id);
+
+        // execute() will return T or F wether SQL statement was successful
+        if ($deleteSong->execute()) {
+            // if good SQL execution redirect to the same exact page. This will redo the query for 'songs' and update the table
+            header("Location: {$_SERVER['PHP_SELF']}");
+            exit;
+        } else {
+            $error_message = "Error: " . $deleteSong->error;
+        }
+        $deleteSong->close();
+    } else {
+        $error_message = "There was an error deleting the song";
+    }
+}
+
+// Endpoint for adding new Playlist
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'newPlaylist') {
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+
+    if ($_SESSION['user_id'] && $name && $description) {
+        $addPlaylist = $conn->prepare("INSERT INTO playlists (owner_id, name, description) VALUES (?, ?, ?)");
+        $addPlaylist->bind_param("iss", $_SESSION['user_id'], $name, $description);
+
+        // execute() will return T or F wether SQL statement was successful
+        if ($addPlaylist->execute()) {
+            // if good SQL execution redirect to the same exact page. This will redo the query for 'songs' and update the table
+            echo("executed playlist add");
+            header("Location: {$_SERVER['PHP_SELF']}");
+            exit;
+        } else {
+            echo("error in playlist add : execute()");
+            $error_message = "Error: " . $addPlaylist->error;
+        }
+        $addPlaylist->close();
+    } else {
+        $playlist_error_message = "All fields are required!";
+    }
+}
 
 // fetch the the users song library
 try {
@@ -54,6 +99,16 @@ try {
     $songs = $result->fetch_all(MYSQLI_ASSOC);
 
     $fetchSongs->close();
+
+    $fetchPlaylists = $conn->prepare("select * from playlists where owner_id = ? order by id desc");
+    $fetchPlaylists->bind_param("i", $current_user_id);
+    $fetchPlaylists->execute();
+
+    $playlistsResults = $fetchPlaylists->get_result();
+    $playlists = $playlistsResults->fetch_all(MYSQLI_ASSOC);
+
+    $fetchPlaylists->close();
+
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 };
@@ -77,7 +132,7 @@ try {
         <?php include "./pages/header.php"?>
     </header>
     <!-- Test Page to show who is logged in. To be changed into a new page. -->
-    <h2>Welcome, <?php echo htmlspecialchars($current_username); ?>!</h2>
+    <h2>Welcome, <?php echo htmlspecialchars($current_username); ?>  🌊</h2>
 
     <article>
         <header>Your Song Library</header>
@@ -110,13 +165,13 @@ try {
                 value="Add Song"
                 />
             </fieldset>
+            <?php if (isset($error_message)): ?>
+            <p style="color: red;"><?php echo htmlspecialchars($error_message); ?></p>
+            <?php endif; ?>
         </form>
         
         <footer style="max-height: 500px; overflow-y: auto;" >
-        <?php if (isset($error_message)): ?>
-            <p style="color: red;"><?php echo htmlspecialchars($error_message); ?></p>
-        <?php endif; ?>
-        
+
         <?php if (empty($songs)): ?>
             <p>No Songs yet. Add a Song Below!</p>
         <?php else: ?>
@@ -127,16 +182,16 @@ try {
                         <div><?= htmlspecialchars($song['artist']) ?></div>
                         <div><?= htmlspecialchars($song['album']) ?></div>
                         <div class="grid">
-                            <form action="" method="POST">
-                                <input type="hidden" name="action" value="edit">
+                            <!-- EDIT BUTTON -->
+                            <form action="edit.php" method="get">
                                 <input type="hidden" name="song_id" value="<?= htmlspecialchars($song['id']) ?>">
                                 <input type="submit" value="Edit">
                             </form>
                             <!-- DELETE BUTTON -->
                             <form action="" method="POST">
-                                <input type="hidden" name="action" value="deleteSong">
+                                <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="song_id" value="<?= htmlspecialchars($song['id']) ?>">
-                                <input type="submit" value="Delete">
+                                <input type="submit" value="Delete" style="height: 70px">
                             </form>
                         </div>
                     </div>
@@ -144,6 +199,53 @@ try {
                 </article>
             <?php endforeach; ?>
         <?php endif; ?>
+        </footer>
+    </article>
+
+    <article>
+        <header>Your Playlists</header>
+         
+        <?php if (empty($playlists)): ?>
+            <p>C'mon... no playlists? 🔭</p>
+        <?php else: ?>
+            <?php foreach ($playlists as $pl): ?>
+
+                <form action="playlist.php" method="get">
+                    <input type="hidden" name="playlist_id" value="<?= htmlspecialchars($pl['id']) ?>">
+                    <input type="submit" value="<?= htmlspecialchars($pl['name']) ?>">
+                </form>
+
+            <?php endforeach; ?>
+        <?php endif; ?>
+
+        <footer>
+            <!-- Form for adding playlist -->
+        <form action="" method="POST" >
+            <fieldset class="grid">
+                <input
+                type="hidden"
+                name="action"
+                value="newPlaylist"
+                />
+                <input
+                name="name"
+                placeholder="Name"
+                aria-label="Name"
+                />
+                <input
+                name="description"
+                placeholder="🤔 Whats the vibe?"
+                aria-label="Description"
+                />
+                <input
+                type="submit"
+                value="Add Playlist"
+                />
+            </fieldset>
+            <?php if (isset($error_message)): ?>
+            <p style="color: red;"><?php echo htmlspecialchars($playlist_error_message); ?></p>
+            <?php endif; ?>
+        </form>
         </footer>
     </article>
     
