@@ -109,7 +109,7 @@ $fetchUsers->close();
 
     <main>
         <article>
-            <header>Manage Your Connections (Echo Score = Songs in common) </header>
+            <header>Manage Your Connections (Echo Score = # of Songs in common) </header>
 
             <table>
                 <thead>
