@@ -13,7 +13,7 @@ if ($conn->connect_error) {
     die('Connection failed: ' . $conn->connect_error);
 }
 
-$user_id = $_SESSION['user_id'];
+
 
 // Handle adding a connection
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'addConnection') {
@@ -53,28 +53,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'deleteConnect
     }
 }
 
-// Fetch user's connections (followers and followings)
-$fetchConnections = $conn->prepare("
-    SELECT uc.id as uc_id, users.id, users.username
-    FROM users
-    JOIN user_connections uc ON uc.following_id = users.id
-    WHERE uc.follower_id = ? OR uc.following_id = ?
+$fetchConnections = $conn->prepare
+("SELECT user_connections.id as connection_id, users.id, users.username, count(*) as echo_score
+  FROM users
+  JOIN user_connections ON user_connections.following_id = users.id
+  JOIN user_library ON user_library.user_id = users.id
+  WHERE user_connections.follower_id = ? OR user_connections.following_id = ?
+  GROUP BY user_connections.id, users.id, users.username
 ");
-$fetchConnections->bind_param("ii", $user_id, $user_id);
+$fetchConnections->bind_param("ii", $_SESSION['user_id'], $_SESSION['user_id']);
 $fetchConnections->execute();
 $connectionsResult = $fetchConnections->get_result();
 $connections = $connectionsResult->fetch_all(MYSQLI_ASSOC);
 $fetchConnections->close();
 
-// Fetch all users excluding the logged-in user
 $fetchUsers = $conn->prepare
-("SELECT id, username 
+("SELECT users.id as userid, username, COUNT(*) as echo_score
   FROM users 
+  JOIN user_library ON user_library.user_id = users.id
   WHERE id != ? AND id NOT IN (
     SELECT user_connections.following_id
     FROM user_connections
     WHERE user_connections.follower_id = ?
   )
+  GROUP BY user.id, username
 ");
 $fetchUsers->bind_param("ii", $user_id, $user_id);
 $fetchUsers->execute();
@@ -100,29 +102,6 @@ $fetchUsers->close();
         <article>
             <header>Manage Your Connections</header>
 
-            <!-- Add Connection Form -->
-            <section>
-                <h2>Add New Connection</h2>
-                <?php if (isset($connection_error_message)): ?>
-                    <p style="color: red;"><?= htmlspecialchars($connection_error_message) ?></p>
-                <?php endif; ?>
-
-                <form action="" method="POST">
-                    <input type="hidden" name="action" value="addConnection"/>
-                    <fieldset>
-                        <select name="follow_user_id" required>
-                            <option value="">Select a User</option>
-                            <?php foreach ($users as $user): ?>
-                                <option value="<?= $user['id'] ?>">
-                                    <?= htmlspecialchars($user['username']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="submit" value="Add Connection"/>
-                    </fieldset>
-                </form>
-            </section>
-
             <table>
                 <thead>
                     <tr>
@@ -136,12 +115,12 @@ $fetchUsers->close();
                         <tr>
                             <td><?= htmlspecialchars($user['username']) ?></td>
                             <td>
-                                <a 
-                                href="profile.php?user_id=<?= $user['id'] ?>" 
-                                class="button" 
-                                >
-                                    <button>View Profile</button>
-                                </a>
+                            <a 
+                            href="profile.php?user_id=<?= $user['id'] ?>" 
+                            class="button" 
+                            >
+                                <button>View Profile</button>
+                            </a>
                             </td>
                             <td>
                                 <form action="" method="POST" style="padding-bottom: 0px; height: 70px; width: 100px">
@@ -165,6 +144,7 @@ $fetchUsers->close();
                         <thead>
                             <tr>
                                 <th>Username</th>
+                                <th>🔥 Echo Score 🔥</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -172,10 +152,11 @@ $fetchUsers->close();
                             <?php foreach ($connections as $connection): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($connection['username']) ?></td>
+                                    <td><?= htmlspecialchars($connection['echo_score']) ?></td>
                                     <td>
                                         <form action="" method="POST" style="padding-bottom: 0px; height: 70px; width: 100px">
                                             <input type="hidden" name="action" value="deleteConnection"/>
-                                            <input type="hidden" name="connection_id" value="<?= $connection['uc_id'] ?>">
+                                            <input type="hidden" name="connection_id" value="<?= $connection['connection_id'] ?>">
                                             <input type="submit" value="Delete"/>
                                         </form>
                                     </td>

@@ -126,13 +126,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'deletePlaylis
 $fetchSongs = $conn->prepare
 ("SELECT songs.id, songs.title, songs.artist
   FROM songs 
-  WHERE songs.id NOT IN (
+  JOIN user_library ON user_library.song_id = songs.id
+  WHERE user_library.user_id = ? AND songs.id NOT IN (
     SELECT playlist_songs.song_id
     FROM playlist_songs
     WHERE playlist_songs.playlist_id = ?
   )
 ");
-$fetchSongs->bind_param("i", $_GET['playlist_id']);
+$fetchSongs->bind_param("ii", $_SESSION['user_id'], $_GET['playlist_id']);
 $fetchSongs->execute();
 
 $userSongsResult = $fetchSongs->get_result();

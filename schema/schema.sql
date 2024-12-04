@@ -51,3 +51,9 @@ CREATE TABLE user_library (
     FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE,
     UNIQUE KEY unique_user_song (user_id, song_id)
 );
+
+CREATE TABLE admins (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    password VARCHAR(255) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL
+);
