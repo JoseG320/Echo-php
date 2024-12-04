@@ -74,7 +74,7 @@ $playlistsStmt->close();
             <li><h2>Profile of <?= $profile_username ?> 🌟</h2></li>
         </ul>
         <ul>
-            <li><a href="freinds.php" class="contrast">Back to Connections</a></li>
+            <li><a href="friends.php" class="contrast">Back to Connections</a></li>
         </ul>
     </nav>
 

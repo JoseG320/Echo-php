@@ -143,7 +143,7 @@ try {
     <ul>
         <li><a href="friends.php" class="contrast">📡 Add Friends</a></li>
         <li><a href="new-songs.php" class="contrast">🏍️ Newly Added Songs</a></li>
-        <li><a href="comparisons.php" class="contrast">🌈 Find New Music!</a></li>
+        <li><a href="comparator.php" class="contrast">🌈 Find New Music!</a></li>
 
     </ul>
     </nav>

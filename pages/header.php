@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <nav>
   <ul>
     <li><a href="index.php"><strong>🎸  Echo - Share Music!</strong></a></li>
