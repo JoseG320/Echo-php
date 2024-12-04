@@ -166,12 +166,21 @@ $fetchUsers->close();
                             <tr>
                                 <th>Username</th>
                                 <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($connections as $connection): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($connection['username']) ?></td>
+                                    <td>
+                                        <a 
+                                        href="profile.php?user_id=<?= $connection['id'] ?>" 
+                                        class="button" 
+                                        >
+                                            <button>View Profile</button>
+                                        </a>
+                                    </td>
                                     <td>
                                         <form action="" method="POST" style="padding-bottom: 0px; height: 70px; width: 100px">
                                             <input type="hidden" name="action" value="deleteConnection"/>
