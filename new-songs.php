@@ -14,57 +14,60 @@ if ($conn->connect_error) {
 }
 
 // Endpoint for adding song from list to library
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'addSong') {
-  $song_id = $_POST['song_id'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'addSong') {
+    $song_id = $_POST['song_id'];
 
-  if ($song_id) {
+    if ($song_id) {
+        $addSong = $conn->prepare("INSERT IGNORE INTO user_library (user_id, song_id) VALUES (?, ?)");
+        $addSong->bind_param("ii", $_SESSION['user_id'], $song_id);
 
-
-
-      $addSong = $conn->prepare("INSERT INTO user_library (user_id, song_id) VALUES (?, ?)");
-      $addSong->bind_param("ii", $_SESSION['user_id'], $song_id);
-
-      // execute() will return T or F wether SQL statement was successful
-      if ($addSong->execute()) {
-          // if good SQL execution redirect to the same exact page. This will redo the query for 'songs' and update the table
-          header("Location: {$_SERVER['PHP_SELF']}");
-          exit;
-      } else {
-          $error_message = "Error: " . $addSong->error;
-      }
-      $addSong->close();
-  } else {
-      $error_message = "There was an error deleting the song";
-  }
+        if ($addSong->execute()) {
+            header("Location: {$_SERVER['PHP_SELF']}");
+            exit;
+        } else {
+            $error_message = "Error adding song: " . $addSong->error;
+        }
+        $addSong->close();
+    } else {
+        $error_message = "Invalid song ID";
+    }
 }
 
 try {
-  $fetchSongs = $conn->prepare("
-      select songs.id, songs.title, songs.artist, songs.album, users.username, users.id as user_id
-      from songs 
-      JOIN users ON users.id = songs.owner_id
-      WHERE songs.id NOT IN (
-        SELECT user_library.song_id
-        FROM user_library
-        WHERE user_library.user_id = ?
-      )
-      order by id desc"
-  );
-  $fetchSongs->bind_param("i", $_SESSION['user_id']);
-  $fetchSongs->execute();
+    // Fetch songs that are public and not already in the user's library
+    $fetchSongs = $conn->prepare("
+        SELECT 
+            songs.id, 
+            songs.title, 
+            songs.artist, 
+            songs.album, 
+            users.username, 
+            users.id as user_id
+        FROM songs 
+        JOIN users ON users.id = songs.owner_id
+        WHERE 
+            songs.is_public = true AND
+            songs.id NOT IN (
+                SELECT user_library.song_id
+                FROM user_library
+                WHERE user_library.user_id = ?
+            )
+        ORDER BY songs.id DESC
+        LIMIT 20"  // Limit to 20 most recent songs
+    );
+    $fetchSongs->bind_param("i", $_SESSION['user_id']);
+    $fetchSongs->execute();
 
-  $result = $fetchSongs->get_result();
-  $songs = $result->fetch_all(MYSQLI_ASSOC);
+    $result = $fetchSongs->get_result();
+    $songs = $result->fetch_all(MYSQLI_ASSOC);
 
-  $fetchSongs->close();
+    $fetchSongs->close();
 
 } catch (Exception $e) {
-  echo "Error: " . $e->getMessage();
-};
+    $error_message = "Error fetching songs: " . $e->getMessage();
+}
 
 ?>
-
-
 
 <!doctype html>
 <html lang="en" data-theme="dark">
@@ -76,13 +79,11 @@ try {
     <title>New Music 🎶</title>
   </head>
   <body class="container">
-
     <header>
         <?php include "./pages/header.php" ?>
     </header>
 
     <main>
-        
       <article>
         <header style="display: flex; justify-content: space-between;">
           <div>
@@ -93,8 +94,12 @@ try {
           </div>
         </header>
         
+        <?php if (!empty($error_message)): ?>
+            <p style="color: red;"><?= htmlspecialchars($error_message) ?></p>
+        <?php endif; ?>
+
         <?php if (empty($songs)): ?>
-            <p></p>
+            <p>No new songs available.</p>
         <?php else: ?>
             <?php foreach ($songs as $song): ?>
                 <article>
@@ -114,17 +119,12 @@ try {
                                 <input type="hidden" name="song_id" value="<?= htmlspecialchars($song['id']) ?>">
                                 <input type="submit" value="Add" style="margin-left: 10px">
                             </form>
-                            
                         </div>
                     </div>
-
                 </article>
             <?php endforeach; ?>
         <?php endif; ?>
-
       </article>
-
     </main>
-
   </body>
 </html>
