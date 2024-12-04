@@ -17,11 +17,11 @@ if ($conn->connect_error) {
 
 // Handle adding a connection
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'addConnection') {
-    $follow_user_id = $_POST['follow_user_id'];
+    $follow_user_id = $_POST['userid'];
 
-    if ($follow_user_id && $follow_user_id != $user_id) {
-        $addConnection = $conn->prepare("INSERT IGNORE INTO user_connections (follower_id, following_id) VALUES (?, ?)");
-        $addConnection->bind_param("ii", $user_id, $follow_user_id);
+    if ($follow_user_id && $follow_user_id != $_SESSION['user_id']) {
+        $addConnection = $conn->prepare("INSERT INTO user_connections (follower_id, following_id) VALUES (?, ?)");
+        $addConnection->bind_param("ii", $_SESSION['user_id'], $follow_user_id);
         if ($addConnection->execute()) {
             header("Location: friends.php");
             exit;
@@ -34,13 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'addConnection
     }
 }
 
-// Handle deleting a connection
+// Endpoint for deleting connection
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'deleteConnection') {
     $connection_id = $_POST['connection_id'];
 
     if ($connection_id) {
-        $deleteConnection = $conn->prepare("DELETE FROM user_connections WHERE id = ? AND (follower_id = ? OR following_id = ?)");
-        $deleteConnection->bind_param("iii", $connection_id, $user_id, $user_id);
+        $deleteConnection = $conn->prepare("DELETE FROM user_connections WHERE id = ?");
+        $deleteConnection->bind_param("i", $connection_id);
         if ($deleteConnection->execute()) {
             header("Location: friends.php");
             exit;
@@ -58,7 +58,12 @@ $fetchConnections = $conn->prepare
   FROM users
   JOIN user_connections ON user_connections.following_id = users.id
   JOIN user_library ON user_library.user_id = users.id
-  WHERE user_connections.follower_id = ? OR user_connections.following_id = ?
+  WHERE user_connections.follower_id = ? 
+    AND user_library.song_id IN (
+        SELECT user_library.song_id
+        FROM user_library
+        WHERE user_id = ?
+    )
   GROUP BY user_connections.id, users.id, users.username
 ");
 $fetchConnections->bind_param("ii", $_SESSION['user_id'], $_SESSION['user_id']);
@@ -71,14 +76,18 @@ $fetchUsers = $conn->prepare
 ("SELECT users.id as userid, username, COUNT(*) as echo_score
   FROM users 
   JOIN user_library ON user_library.user_id = users.id
-  WHERE id != ? AND id NOT IN (
+  WHERE users.id != ? AND users.id NOT IN (
     SELECT user_connections.following_id
     FROM user_connections
     WHERE user_connections.follower_id = ?
+  ) AND user_library.song_id IN (
+    SELECT user_library.song_id
+    FROM user_library
+    WHERE user_id = ?
   )
-  GROUP BY user.id, username
+  GROUP BY users.id, username
 ");
-$fetchUsers->bind_param("ii", $user_id, $user_id);
+$fetchUsers->bind_param("iii", $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']);
 $fetchUsers->execute();
 $usersResult = $fetchUsers->get_result();
 $users = $usersResult->fetch_all(MYSQLI_ASSOC);
@@ -100,12 +109,13 @@ $fetchUsers->close();
 
     <main>
         <article>
-            <header>Manage Your Connections</header>
+            <header>Manage Your Connections (Echo Score = Songs in common) </header>
 
             <table>
                 <thead>
                     <tr>
                         <th>Username</th>
+                        <th>🔥 Echo Score 🔥</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -114,18 +124,19 @@ $fetchUsers->close();
                     <?php foreach ($users as $user): ?>
                         <tr>
                             <td><?= htmlspecialchars($user['username']) ?></td>
+                            <td><?= htmlspecialchars($user['echo_score']) ?></td>
                             <td>
-                            <a 
-                            href="profile.php?user_id=<?= $user['id'] ?>" 
-                            class="button" 
-                            >
-                                <button>View Profile</button>
-                            </a>
-                            </td>
+                                <a 
+                                href="profile.php?user_id=<?= $user['userid'] ?>" 
+                                class="button" 
+                                >
+                                    <button>View Profile</button>
+                                </a>
+                                </td>
                             <td>
                                 <form action="" method="POST" style="padding-bottom: 0px; height: 70px; width: 100px">
                                     <input type="hidden" name="action" value="addConnection"/>
-                                    <input type="hidden" name="follow_user_id" value="<?= $user['id'] ?>">
+                                    <input type="hidden" name="userid" value="<?= $user['userid'] ?>">
                                     <input type="submit" value="Add"/>
                                 </form>
                             </td>
@@ -153,6 +164,15 @@ $fetchUsers->close();
                                 <tr>
                                     <td><?= htmlspecialchars($connection['username']) ?></td>
                                     <td><?= htmlspecialchars($connection['echo_score']) ?></td>
+                                    <td>
+                                        <a 
+                                        href="profile.php?user_id=<?= $user['userid'] ?>" 
+                                        class="button" 
+                                        >
+                                            <button>View Profile</button>
+                                        </a>
+                                        </td>
+                                    <td>
                                     <td>
                                         <form action="" method="POST" style="padding-bottom: 0px; height: 70px; width: 100px">
                                             <input type="hidden" name="action" value="deleteConnection"/>

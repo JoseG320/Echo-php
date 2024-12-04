@@ -19,6 +19,7 @@ if (!isset($_GET['user_id']) || empty($_GET['user_id'])) {
     exit;
 }
 $profile_user_id = intval($_GET['user_id']);
+$current_user_id = $_SESSION['user_id']; // The ID of the currently logged-in user
 
 // Fetch profile user info (optional, for display)
 $profileUserStmt = $conn->prepare("SELECT username FROM users WHERE id = ?");
@@ -49,6 +50,20 @@ $playlistsStmt->execute();
 $playlistsResult = $playlistsStmt->get_result();
 $playlists = $playlistsResult->fetch_all(MYSQLI_ASSOC);
 $playlistsStmt->close();
+
+// Fetch the common songs between the logged-in user and the profile user
+$commonSongsStmt = $conn->prepare("
+    SELECT s.id, s.title, s.artist, s.album 
+    FROM songs s
+    JOIN user_library ul1 ON ul1.song_id = s.id
+    JOIN user_library ul2 ON ul2.song_id = s.id
+    WHERE ul1.user_id = ? AND ul2.user_id = ?
+");
+$commonSongsStmt->bind_param("ii", $current_user_id, $profile_user_id);
+$commonSongsStmt->execute();
+$commonSongsResult = $commonSongsStmt->get_result();
+$commonSongs = $commonSongsResult->fetch_all(MYSQLI_ASSOC);
+$commonSongsStmt->close();
 
 ?>
 
@@ -84,13 +99,13 @@ $playlistsStmt->close();
             <?php if (empty($songs)): ?>
                 <p>No songs found for this user.</p>
             <?php else: ?>
-                    <article class="pico-background-pink-600">
-                        <div class="grid">
-                            <div style="text-decoration: underline;">Title</div>
-                            <div style="text-decoration: underline;">Artist</div>
-                            <div style="text-decoration: underline;">Album</div>
-                        </div> 
-                    </article>
+                <article class="pico-background-pink-600">
+                    <div class="grid">
+                        <div style="text-decoration: underline;">Title</div>
+                        <div style="text-decoration: underline;">Artist</div>
+                        <div style="text-decoration: underline;">Album</div>
+                    </div> 
+                </article>
                 <?php foreach ($songs as $song): ?>
                     <article class="pico-background-pink-600">
                         <div class="grid">
@@ -119,5 +134,32 @@ $playlistsStmt->close();
             <?php endif; ?>
         </section>
     </article>
+
+    <article>
+        <header>Common Songs with <?= $profile_username ?></header>
+        <section>
+            <?php if (empty($commonSongs)): ?>
+                <p>No common songs found with this user.</p>
+            <?php else: ?>
+                <article class="pico-background-pink-600">
+                    <div class="grid">
+                        <div style="text-decoration: underline;">Title</div>
+                        <div style="text-decoration: underline;">Artist</div>
+                        <div style="text-decoration: underline;">Album</div>
+                    </div> 
+                </article>
+                <?php foreach ($commonSongs as $song): ?>
+                    <article class="pico-background-pink-600">
+                        <div class="grid">
+                            <div><?= htmlspecialchars($song['title']) ?></div>
+                            <div><?= htmlspecialchars($song['artist']) ?></div>
+                            <div><?= htmlspecialchars($song['album']) ?></div>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </section>
+    </article>
+
 </body>
 </html>

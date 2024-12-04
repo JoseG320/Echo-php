@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($_POST['id'] != $_SESSION['admin_id']) {
                     $stmt = $conn->prepare("DELETE FROM admins WHERE id = ?");
                     $stmt->bind_param("i", $_POST['id']);
-                    $stmt->execute();\
+                    $stmt->execute();
                     $conn->close();
                 }
                 break;
