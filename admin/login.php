@@ -2,14 +2,11 @@
 session_start();
 
 // Database connection
-$conn = new mysqli('localhost', 'root', '', 'echo-db');
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+require_once __DIR__ . '/../config/db.php';
 
 // Check if already logged in
 if (isset($_SESSION['admin_id'])) {
-    header('Location: admin.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -27,10 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($result->num_rows === 1) {
         
-        if ($password === $admin['password']) {
+        if (password_verify($password, $admin['password'])) {
             $_SESSION['admin_id'] = $admin['id'];
             $_SESSION['admin_username'] = $username;
-            header('Location: admin.php');
+            header('Location: index.php');
             exit;
         } else {
             $login_error = 'Invalid username or password';

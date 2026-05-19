@@ -1,13 +1,7 @@
 <?php
 session_start();
 
-$servername = 'localhost';
-$username = 'root';
-$password = '';
-$dbname = 'echo-db';
-
-// Connect to database
-$conn = new mysqli($servername, $username, $password, $dbname);
+require_once __DIR__ . '/config/db.php';
 
 ?>
 
@@ -49,13 +43,13 @@ $conn = new mysqli($servername, $username, $password, $dbname);
             Ready to get started? Click below and let's get the playlist rolling! 🎉
         </p>
         
-        <a href="register.php" class="button">🛵 Register Now!</a>
+        <a href="auth/register.php" class="button">🛵 Register Now!</a>
 
     </main>
 
     <footer>
         <p>Made by Jose and Mustafa</p>
-        <a href="admin-login.php" class="button">🛂 Admin Login</a>
+        <a href="admin/login.php" class="button">🛂 Admin Login</a>
     </footer>
 
   </body>

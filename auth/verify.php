@@ -1,6 +1,12 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-$db = new PDO('mysql:host=localhost;dbname=echo-db;charset=utf8', 'root', '');
+require __DIR__ . '/../vendor/autoload.php';
+
+$host     = $_ENV['DB_HOST']     ?? getenv('DB_HOST')     ?: 'localhost';
+$dbname   = $_ENV['DB_NAME']     ?? getenv('DB_NAME')     ?: 'echo-db';
+$user     = $_ENV['DB_USER']     ?? getenv('DB_USER')     ?: 'root';
+$password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
+$db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password);
+
 $auth = new \Delight\Auth\Auth($db);
 
 if (isset($_GET['selector']) && isset($_GET['token'])) {
@@ -33,7 +39,7 @@ if (isset($_GET['selector']) && isset($_GET['token'])) {
 </head>
 <body class="container">
     <header>
-        <?php include "./pages/header.php"?>
+        <?php include "../pages/header.php"?>
     </header>
     <header>
         <h1>Email Verification</h1>

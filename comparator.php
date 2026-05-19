@@ -1,13 +1,11 @@
 <?php
 session_start();
 
-$conn = new mysqli('localhost', 'root', '', 'echo-db');
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+require_once __DIR__ . '/config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    die('You must be logged in to compare playlists.');
+    header('Location: auth/login.php');
+    exit;
 }
 
 $user_id = $_SESSION['user_id'];

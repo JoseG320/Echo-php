@@ -3,15 +3,12 @@ session_start();
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin_id'])) {
-    header('Location: admin-login.php');
+    header('Location: login.php');
     exit;
 }
 
 // Database connection
-$conn = new mysqli('localhost', 'root', '', 'echo-db');
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+require_once __DIR__ . '/../config/db.php';
 
 // Handle deletion actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -50,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Redirect to prevent form resubmission
-        header('Location: admin.php');
+        header('Location: index.php');
         exit;
     }
 }

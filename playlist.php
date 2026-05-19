@@ -3,15 +3,12 @@ session_start();
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: auth/login.php');
     exit;
 }
 
 // Database connection
-$conn = new mysqli('localhost', 'root', '', 'echo-db');
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+require_once __DIR__ . '/config/db.php';
 
 // Fetch the playlist from url parameter
 $fetchPlaylist = $conn->prepare("SELECT * FROM playlists WHERE id = ?");

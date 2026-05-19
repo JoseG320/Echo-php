@@ -3,15 +3,12 @@ session_start();
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: auth/login.php');
     exit;
 }
 
 // Database connection
-$conn = new mysqli('localhost', 'root', '', 'echo-db');
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+require_once __DIR__ . '/config/db.php';
 
 // Get the user ID from the query string
 if (!isset($_GET['user_id']) || empty($_GET['user_id'])) {

@@ -3,7 +3,7 @@ session_start();
 
 // If session is not active with a userID, redirect to login page
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: auth/login.php');
     exit;
 }
 
@@ -12,10 +12,7 @@ $current_user_id = $_SESSION['user_id'];
 $current_username = $_SESSION['username'];
 
 // Database connection
-$conn = new mysqli('localhost', 'root', '', 'echo-db');
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+require_once __DIR__ . '/config/db.php';
 
 // Endpoint for adding new song to user library
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'add') {

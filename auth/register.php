@@ -1,9 +1,6 @@
 <?php
 // Database connection
-$conn = new mysqli('localhost', 'root', '', 'echo-db');
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+require_once __DIR__ . '/../config/db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
@@ -49,7 +46,7 @@ $conn->close();
 </head>
 <body class="container">
     <header>
-        <?php include "./pages/header.php"?>
+        <?php include "../pages/header.php"?>
     </header>
     <h2>Register</h2>
     <form method="POST" action="">

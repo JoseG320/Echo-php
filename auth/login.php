@@ -2,10 +2,7 @@
 session_start();
 
 // Database connection
-$conn = new mysqli('localhost', 'root', '', 'echo-db');
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
-}
+require_once __DIR__ . '/../config/db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
@@ -27,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['username'] = $user['username'];
 
             // Redirect to the dashboard
-            header('Location: home.php');
+            header('Location: ../home.php');
             exit; // Ensure no further code executes after the redirect
         } else {
             echo 'Invalid credentials.';
@@ -56,7 +53,7 @@ $conn->close();
 </head>
 <body class="container">
     <header>
-        <?php include "./pages/header.php"?>
+        <?php include "../pages/header.php"?>
     </header>
     <h2>Login</h2>
     <form method="POST" action="">
